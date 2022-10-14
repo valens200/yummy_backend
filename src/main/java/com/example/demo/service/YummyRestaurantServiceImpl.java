@@ -1,15 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.models.Product;
-import com.example.demo.models.Role;
-import com.example.demo.models.YummyRestaurant;
-import com.example.demo.models.YummyUser;
-import com.example.demo.repository.ProductRepository;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.YummyRestaurantRepository;
-import com.example.demo.repository.YummyUserRepository;
+import com.auth0.jwt.JWT;
+import com.example.demo.models.*;
+import com.example.demo.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,12 +17,13 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.undo.StateEdit;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
+//0786169456
 @Service
 @Slf4j
 public class YummyRestaurantServiceImpl implements  YummyRestaurantService, UserDetailsService {
@@ -39,11 +36,13 @@ public class YummyRestaurantServiceImpl implements  YummyRestaurantService, User
     YummyRestaurantRepository yummyRestaurantRepository;
     @Autowired
     YummyUserRepository yummyUserRepository;
+    @Autowired
+    OrderRepository orderRepository;
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         YummyRestaurant restaurant = yummyRestaurantRepository.findByEmail(email);
         if(restaurant == null){
-            log.info("User not found ");
+            log.info("User not found {}", email);
         }else{
             log.info("User found with username {} ", email);
         }
@@ -121,16 +120,21 @@ public class YummyRestaurantServiceImpl implements  YummyRestaurantService, User
     }
 
     @Override
+    public Orders saveOrder(Orders order) {
+        return orderRepository.save(order);
+    }
+
+    @Override
     public YummyRestaurant RegisterNewYummyRestaurant(YummyRestaurant yummyRestaurant, HttpServletRequest request, HttpServletResponse response) throws IOException {
         YummyRestaurant availableRestaurant = yummyRestaurantRepository.findByEmail(yummyRestaurant.getEmail());
         if(availableRestaurant != null){
             response.setStatus( BAD_REQUEST.value());
             Map<String, String> messages = new HashMap<>();
-            messages.put("err_message", "Restaurant with that Email exist please login");
+            messages.put("message", "Restaurant with that Email exist please login");
             new ObjectMapper().writeValue(response.getOutputStream(), messages);
             return null;
         }else{
-            return yummyRestaurantRepository.save(yummyRestaurant);
+             return  yummyRestaurantRepository.save(yummyRestaurant);
         }
     }
 
@@ -140,7 +144,7 @@ public class YummyRestaurantServiceImpl implements  YummyRestaurantService, User
         if(user != null){
             response.setStatus(BAD_REQUEST.value());
             Map<String, String> messages = new HashMap<>();
-            messages.put("error_message", "user with that email exist please login");
+            messages.put("message", "user with that email exist please login");
             new ObjectMapper().writeValue(response.getOutputStream(), messages);
             return  null;
         }else{
@@ -162,4 +166,35 @@ public class YummyRestaurantServiceImpl implements  YummyRestaurantService, User
          return yummyRestaurantRepository.save(user);
 
     }
+
+    @Override
+    public Optional<YummyRestaurant> addProductToRestaurant(String productName) {
+       try{
+
+           Product product = productRepository.getProductByProductName(productName);
+           Optional<YummyRestaurant>  restaurant = yummyRestaurantRepository.findById(product.getId());
+           restaurant.stream().forEach(restauran -> {
+               restauran.getAvailableProducts().add(product);
+           });
+           restaurant.stream().forEach(restaura -> {
+               yummyRestaurantRepository.save(restaura);
+           });
+           return restaurant;
+       }catch(Exception exception){
+           log.error("errorrrrrrrrrrr : {}", exception.getMessage());
+           return null;
+       }
+    }
+
+    @Override
+    public Optional<YummyRestaurant> addOrderToRestaurant(int id, String orderName) {
+        Optional<YummyRestaurant> restaurant = yummyRestaurantRepository.findById(id);
+        Orders order = orderRepository.getOrderByOrderName(orderName);
+        restaurant.stream().forEach(resto -> {
+            resto.getOrders().add(order);
+        });
+        return restaurant;
+    }
+
+
 }

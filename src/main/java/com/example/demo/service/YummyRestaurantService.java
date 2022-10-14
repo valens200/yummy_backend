@@ -1,9 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.models.Product;
-import com.example.demo.models.Role;
-import com.example.demo.models.YummyRestaurant;
-import com.example.demo.models.YummyUser;
+import com.example.demo.models.*;
 import com.example.demo.repository.YummyRestaurantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,11 +29,13 @@ public interface YummyRestaurantService {
 
 
     Product RegisterNewProduct(Product product);
+    Orders saveOrder(Orders order);
     YummyRestaurant RegisterNewYummyRestaurant(YummyRestaurant yummyRestaurant, HttpServletRequest request,  HttpServletResponse response) throws IOException;
     YummyUser RegisterNewYummyUser(YummyUser yummyUser, HttpServletRequest request, HttpServletResponse response) throws IOException;
     Role RegisterNewRole(Role role);
 
     YummyRestaurant addRoleTouser(String userName, String roleName);
-
+    Optional<YummyRestaurant> addProductToRestaurant(String productName);
+    Optional<YummyRestaurant> addOrderToRestaurant(int id, String orderName);
 
 }

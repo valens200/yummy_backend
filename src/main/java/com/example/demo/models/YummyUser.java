@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Entity
 @Data
@@ -16,7 +18,7 @@ import javax.persistence.*;
 public class YummyUser {
 
     @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     @Column(name = "email")
     private String email;
@@ -24,7 +26,9 @@ public class YummyUser {
     private String userFullname;
     @Column(name = "userName")
     private String userName;
-    @Column(name = "userPasswod")
-    private String userPasswod;
+    @Column(name = "password")
+    private String password;
+    @ManyToMany(fetch = FetchType.EAGER)
+    Collection<Role> roles = new ArrayList<>();
 
 }

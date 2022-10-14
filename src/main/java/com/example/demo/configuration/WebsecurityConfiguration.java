@@ -38,14 +38,14 @@ public class WebsecurityConfiguration  extends WebSecurityConfigurerAdapter {
     @Override
     public  void configure (HttpSecurity http) throws Exception{
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-
         customAuthenticationFilter.setFilterProcessesUrl("/yummy/login");
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeHttpRequests()
                 .antMatchers("/users").permitAll()
                         .antMatchers("/yummy/saveUser").permitAll()
-                        .antMatchers("").permitAll();
+                        .antMatchers("/productsRestaurants").permitAll()
+                        .antMatchers("/yummy/restaurants").permitAll();
         http.addFilter(customAuthenticationFilter);
         http.addFilterBefore( new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
